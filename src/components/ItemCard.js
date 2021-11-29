@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { Card, Col, Button } from "react-bootstrap";
 import { titleCase } from "../helpers";
 import { Redirect } from "react-router-dom";
+
+
 export default class ItemCard extends Component {
   constructor() {
     super();
@@ -10,51 +12,62 @@ export default class ItemCard extends Component {
     };
   }
 
+
   handleRenderItem = () => {
     this.setState({ clicked: true });
   };
 
+
   render() {
-    return (
+  return (
+     
       <Col>
-        {/* come back for single item */}
+      {/* come back for single item */}
         {this.state.clicked ? (
           <Redirect to={`/item/${this.props.item.id}`} />
-        ) : (
-          ""
-        )}
-        <Card style={{ width: "150px", height: "400px", marginBottom: "25px" }}>
-          <Card.Img
+          ) : (
+            ""
+          )}
+       
+
+        <Card style={{ width: "250px", height:"430px", marginBottom: "25px" }} >
+          <Card.Body>
+          <Card.Title style={{fontSize:"13px", color:"#606A72"}}>
+              {(this.props.item.title.toUpperCase()) ?? "Generic Item"}
+            </Card.Title>
+            <br/><br/>
+
+            <Card.Img
             variant="top"
-            style={{ height: "100px", objectFit: "contain" }}
-            alt={this.props.item.name + " image"}
+            style={{ height: "130px", objectFit: "contain" }}
+            alt={this.props.item.title + " image"}
             src={
-              this.props.item.img ??
+              this.props.item.image ??
               "https://res.cloudinary.com/cae67/image/upload/v1629310111/fakebook_shop/no-image_nkau78.png"
             }
-          />
-          <Card.Body>
-            <Card.Title>
-              {titleCase(this.props.item.name) ?? "Generic Item"}
-            </Card.Title>
-            <Card.Text>
-              {this.props.item.description ?? "Sorry No Description"}
-            </Card.Text>
-            <Card.Subtitle className="float-end">
-              ${this.props.item.price ?? "?.??"}{" "}
-            </Card.Subtitle>
-            <br />
-            <button
+            />
+          <br/><br/>
+
+          <Card.Text style={{fontSize:"13px", color:"grey"}}>
+              {titleCase(this.props.item.description.substring(0,40))+"..." ?? "Sorry No Description"}
+              <button
               style={{
-                backgroundColor: "white",
+                background:"white",
                 border: "none",
-                color: "blue",
+                color: "#71BCEE",
+                fontSize:"13px"
               }}
               onClick={() => this.handleRenderItem()}
             >
               See More
             </button>
-            <Button variant="primary" onClick={()=>this.props.addToCart(this.props.item)}> Add To Cart</Button>
+            </Card.Text>
+
+            <Card.Subtitle className="float-left " style={{color:"#71D4EE"}}>
+              ${this.props.item.price ?? "?.??"}{" "}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+             <Button style={{backgroundColor:"white", fontSize:"12px", color:"#71D4EE", borderRadius:"18px", border: '2px solid #71D4EE'}} variant="info" > Add To Cart</Button>
+            </Card.Subtitle>
+
           </Card.Body>
         </Card>
       </Col>

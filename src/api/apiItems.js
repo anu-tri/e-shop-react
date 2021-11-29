@@ -3,7 +3,8 @@ import apiClientWithToken from './clientTokenAuth'
 const endpoint = "/api/item";
 
 export const getItems = async (token) =>{
-    const response = await apiClientWithToken(token).get(endpoint)
+    //const response = await apiClientWithToken(token).get(endpoint)
+    const response = await apiClientWithToken(token).get("/products")
     if (400 <= response.status && response.status < 500){return 400;}
     if (500 <= response.status && response.status < 600){return 500;}
     if (response.ok){return response.data.items}

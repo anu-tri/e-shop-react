@@ -1,50 +1,36 @@
 import React, { Component } from "react";
 import { Switch, Route } from "react-router-dom";
 import Home from "./views/Home";
-import Page2 from "./views/Page2";
-import Page3 from "./views/Page3";
 import Login from "./views/Login";
 import Logout from "./views/Logout";
-import Example from "./views/Example";
 import SingleItem from "./views/SingleItem";
-import Shop from "./views/Shop";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NavBar from "./components/NavBar";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { getIsAdmin } from "./api/apiAdmin";
-import AdminRoute from "./components/AdminRoute";
+import {titleCase} from './helpers';
 import CreateCats from "./views/CreateCats";
 import EditCats from "./views/EditCats";
 import CreateItems from "./views/CreateItems";
 import EditItems from "./views/EditItems";
-
 import { Container } from 'react-bootstrap'
+
 
 export default class App extends Component {
   constructor() {
     super();
     this.state = {
-      test: "This is a test",
       user: "",
       token: "",
-      foods: [],
+      userFullName:"",
       isAdmin: false,
-      cart:{}
+      cart:{},
+      cartTotal:0
     };
   }
 
-  static getDerivedStateFromProps = (props, state) => {
-    return { 
-      token: localStorage.getItem("token"),
-      cart: localStorage.getItem("cart")? JSON.parse(localStorage.getItem("cart")):{}
-    };
-  };
-
+ 
+  
   componentDidMount() {
-    if (this.state.token) {
-      this.getIsAdmin();
-    }
-
     if (typeof window !== "undefined") {
       window.addEventListener("storage",(e)=>{
         this.setState({cart:JSON.parse(localStorage.getItem("cart"))})
@@ -55,43 +41,53 @@ export default class App extends Component {
 
   setUser = (user) => {
     this.setState({ user }, () => console.log("User is", this.state.user));
+    // localStorage.setItem("user", user)
   };
 
-  addFood = (food) => {
-    let foods = this.state.foods;
-    foods.push(food);
-    this.setState({ foods });
-  };
-
-  setToken = (token) => {
-    localStorage.setItem("token", token);
-    this.setState({ token }, this.getIsAdmin);
-    
-  };
-
-  getIsAdmin=()=>{
-    const isAdmin=async ()=>{
-      let res=await getIsAdmin(localStorage.getItem('token'))
-      if (res === 500 || res ===400){res=false}
-      console.log("isAdmin",res)
-      this.setState({isAdmin:res})
-    }
-    isAdmin()
+  setUserName = (username) =>{
+    let fullname = "";
+    fetch('https://fakestoreapi.com/users')
+    .then(response=>response.json())
+    .then(json=>{
+      for(let user of json){
+        if(user.username === username){
+          fullname = user.name.firstname + " " + user.name.lastname;
+          console.log(fullname)
+          this.setState({userFullName:titleCase(fullname)});
+          localStorage.setItem("name",titleCase(fullname));
+          break;
+        }
+      }
+    })
   }
 
+  
+  setToken = (token) => {
+    localStorage.setItem("token", token);
+    this.setState({ token });
+  };
+
+
+  static getDerivedStateFromProps = (props, state) => {
+    return { 
+      token: localStorage.getItem("token"),
+      name:localStorage.getItem("name"),
+      cart: localStorage.getItem("cart")? JSON.parse(localStorage.getItem("cart")):{}
+    };
+  };
+
+   
   doLogout=()=>{
     console.log("Logged out")
     localStorage.clear();
     this.setToken('');
-    this.setState({isAdmin:false, cart:{}});
+    this.setUserName('');
+    this.setState({isAdmin:false, cart:{}, userFullName:''});
+    //alert("logout")
 
   }
 
   // cart section
-
-  // {
-  //   "Red Shoes":{name:"red shoes",desc:"the desc",price:"price", quantity:""}
-  // }
   addToCart=(item)=>{
     let cart = this.state.cart
     if (cart[item.name]){
@@ -104,6 +100,7 @@ export default class App extends Component {
     alert(`Thanks for adding ${item.name} to your cart`)
   }
   
+
   //The total number of items in the cart
   getCartItemTotal=()=>{
     let total=0
@@ -152,23 +149,15 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <NavBar token={this.state.token} isAdmin={this.state.isAdmin} getCartTotalPrice={this.getCartTotalPrice} getCartItemTotal={this.getCartItemTotal} />
+        <NavBar token={this.state.token} userFullName={this.state.userFullName} isAdmin={this.state.isAdmin} getCartTotalPrice={this.getCartTotalPrice} getCartItemTotal={this.getCartItemTotal} />
         <Container>
           <Switch> 
             <ProtectedRoute exact path ="/" token={this.state.token} 
-                render={()=><Home/>} />
-            <ProtectedRoute exact path ="/page2" token={this.state.token} 
-                render={()=><Page2 addFood = {this.addFood} setUser={this.setUser} test = {this.state.test} />} />
-            <ProtectedRoute exact path ="/page3" token={this.state.token} 
-               render={()=><Page3 user={this.state.user} foods={this.state.foods}/>} />
-            <ProtectedRoute exact path ="/example" token={this.state.token} 
-                render={()=><Example/>} />
-            <ProtectedRoute exact path ="/shop" token={this.state.token} 
-                render={()=><Shop addToCart={this.addToCart}/>} />
+                render={()=><Home addToCart={this.addToCart}/>} />
             <ProtectedRoute exact path ="/item/:id" token={this.state.token} 
                 render={(props)=><SingleItem {...props}/>} />
            
-            <AdminRoute exact path ="/createcats" isAdmin={this.state.isAdmin} token={this.state.token} 
+            {/* <AdminRoute exact path ="/createcats" isAdmin={this.state.isAdmin} token={this.state.token} 
                 render={()=><CreateCats/>} />
             <AdminRoute exact path ="/editcats" isAdmin={this.state.isAdmin} token={this.state.token} 
                 render={()=><EditCats/>} />
@@ -176,11 +165,12 @@ export default class App extends Component {
             <AdminRoute exact path ="/createitems" isAdmin={this.state.isAdmin} token={this.state.token} 
                 render={()=><CreateItems/>} />
             <AdminRoute exact path ="/edititems" isAdmin={this.state.isAdmin} token={this.state.token} 
-                render={()=><EditItems/>} />
+                render={()=><EditItems/>} /> */}
 
  
             <Route exact path ="/login" 
-                render={()=><Login setToken={this.setToken}/>} />
+                render={()=><Login setToken={this.setToken} setUserName={this.setUserName}/>} />
+            
             <ProtectedRoute exact path ="/logout"
                 token={this.state.token}
                 render={()=><Logout doLogout={this.doLogout}/>}/>
